@@ -1,7 +1,7 @@
 import numpy
 
 def textToMat(string) :
-    mat = numpy.zeros((59, 160))
+    mat = numpy.zeros((59, 260))
     for i in range(0,len(string)):
         ascii = ord(string[i])
 
@@ -10,7 +10,7 @@ def textToMat(string) :
             j = (ascii-97)
             mat[j][i] = 1
 
-        #   <spc> ! " to @ = 26 27 28 to 58
+        #   <spc> ! " ... @ = 26 27 28 ... 58
         elif ((ascii > 31) and (ascii < 65)) :
             j = (ascii-6)
             mat[j][i] = 1
