@@ -1,6 +1,7 @@
 import pandas as pd
 
-trump_tweets_df = pd.read_csv('/Users/mustafa/documents/Year 4/403/trump.csv', nrows=150)
+PATH = '/Users/mustafa/documents/Year 4/403/'
+trump_tweets_df = pd.read_csv(PATH + 'mostUpdatedTrump.csv')
 
 #gets rid of links and other things to clean the tweet up so it's just text.
 def clean_tweet(tweet):
@@ -61,4 +62,4 @@ trump_tweets_df['created_at'] = pd.to_datetime(trump_tweets_df['created_at'], in
 trump_tweets_df['time'] = trump_tweets_df['created_at'].dt.time
 trump_tweets_df['date'] = trump_tweets_df['created_at'].dt.date
 
-trump_tweets_df.to_csv('/Users/mustafa/documents/Year 4/403/new_trump.csv')
+trump_tweets_df.to_csv(PATH + 'new_trump.csv')
