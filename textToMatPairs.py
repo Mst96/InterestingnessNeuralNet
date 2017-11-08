@@ -6,13 +6,12 @@ def textToMatPairs(string) :
 
         asciiFirstPartOfPair = ord(string[i])
         asciiSecondPartOfPair = ord(string[i+1])
+        if((asciiFirstPartOfPair > 96) and (asciiFirstPartOfPair < 123) and (asciiSecondPartOfPair > 96) and (asciiSecondPartOfPair < 123)):
 
-        if ((asciiFirstPartOfPair > 96) and (asciiFirstPartOfPair < 123)) :
             row = (asciiFirstPartOfPair-97)
 
-        if ((asciiSecondPartOfPair > 96) and (asciiSecondPartOfPair < 123)):
-            collumn = (asciiSecondPartOfPair - 97)
+            column = (asciiSecondPartOfPair - 97)
 
-        mat[collumn][row] += 1
+            mat[column][row] += 1
 
     print(mat)
