@@ -24,21 +24,21 @@ from keras.layers import Conv1D, GlobalMaxPooling1D
 
 
 #gets rid of links and other things to clean the tweet up so it's just text.
-def load_train_data(num_tweets):
-	with open("TESTING AND TRAINING DATA/training_trump1.csv", 'r') as f:
+def load_train_data():
+	with open("TESTING AND TRAINING DATA/training_trump4.csv", 'r') as f:
 		tweets = list(csv.reader(f, delimiter=","))
 	# print(tweets)
-	train_array = np.asarray(tweets)[1:num_tweets]
+	train_array = np.asarray(tweets)[1:]
 	train_array = train_array[:, [2,9]]
 	# return array[:, [2,9]]
 	
 	return train_array
 
-def load_test_data(num_tweets):
-	with open("TESTING AND TRAINING DATA/testing_trump1.csv", 'r') as f:
+def load_test_data():
+	with open("TESTING AND TRAINING DATA/testing_trump2.csv", 'r') as f:
 		tweets = list(csv.reader(f, delimiter=","))
 	
-	test_array = np.asarray(tweets)[1:num_tweets]
+	test_array = np.asarray(tweets)[1:]
 	test_array = test_array[:, [2,9]]
 
 	return test_array
@@ -51,19 +51,19 @@ def pad(tweets, vocab_size):
 	return padded_docs
 
 save_dir = os.path.join(os.getcwd(), 'saved_models')
-model_name = 'keras_cifar10_trained_model.h5'
+model_name = 'keras_403_trained_model.h5'
 # set parameters:
-max_features = 101
+max_features = 1001
 maxlen = 50
 vocab_size = 50
 #32 samples in a batch, all processed independently
 batch_size = 100
 embedding_dims = 100
-filters = 250
+filters = 100
 kernel_size = 3
 hidden_dims = 250
 #Arbitrary cutoff point. 1 = 1 PASS OVER DATASET.
-epochs = 100
+epochs = 2
 
 
 #initialise input dimensions
@@ -79,10 +79,10 @@ epochs = 100
 # x = Input(shape=(26, 26, 4), name='hashtags+media+@')
 
 print('Loading data...')
-train = load_train_data(num_tweets=max_features)
+train = load_train_data()
 x_train = train[:,0]
 y_train = train[:,1]
-test = load_test_data(num_tweets=max_features)
+test = load_test_data()
 x_test = test[:,0]
 y_test = test[:,1]
 
@@ -111,22 +111,22 @@ model.add(Embedding(vocab_size,
 # model.add(Dense(32))
 model.add(Conv1D(32, (3,), padding='same'))
 model.add(Activation('relu'))
-model.add(Conv1D(32, (3,)))
-model.add(Activation('relu'))
-model.add(MaxPooling1D(pool_size=(2,)))
+# model.add(Conv1D(32, (3,)))
+# model.add(Activation('relu'))
+# model.add(MaxPooling1D(pool_size=(2,)))
 model.add(Dropout(0.25))
-model.add(Conv1D(64, (3,), padding='same'))
-model.add(Activation('relu'))
-model.add(Conv1D(64, (3,)))
-model.add(Activation('relu'))
-model.add(MaxPooling1D(pool_size=(2,)))
-model.add(Dropout(0.25))
+# model.add(Conv1D(64, (3,), padding='same'))
+# model.add(Activation('relu'))
+# model.add(Conv1D(64, (3,)))
+# model.add(Activation('relu'))
+# model.add(MaxPooling1D(pool_size=(2,)))
+# model.add(Dropout(0.25))
 model.add(Flatten())
-model.add(Dense(512))
-model.add(Activation('relu'))
-model.add(Dropout(0.5))
+# model.add(Dense(512))
+# model.add(Activation('relu'))
+# model.add(Dropout(0.5))
 model.add(Dense(1))
-model.add(Activation('tanh'))
+model.add(Activation('sigmoid'))
 # print(model.output_shape)
 # model.add(Dense(1, activation='sigmoid'))
 
@@ -172,7 +172,3 @@ if not os.path.isdir(save_dir):
 model_path = os.path.join(save_dir, model_name)
 model.save(model_path)
 print('Saved trained model at %s ' % model_path)
-
-# Score trained model.
-scores = model.evaluate(x_test, y_test, verbose=1)
-print('Test loss:', scores)
