@@ -1,7 +1,9 @@
-import numpy
+import numpy as np
+import sys
+import scipy
 
 def textToMat(string) :
-    mat = numpy.zeros((59, 260))
+    mat = np.zeros((59, 260))
     for i in range(0,len(string)):
         ascii = ord(string[i])
 
@@ -14,5 +16,7 @@ def textToMat(string) :
         elif ((ascii > 31) and (ascii < 65)) :
             j = (ascii-6)
             mat[j][i] = 1
-
+    # mat = mat.todense()
+    mat = np.array(mat)
+    mat = mat.todense()
     return mat

@@ -1,17 +1,18 @@
 import numpy
+import sys
 
 def textToMatPairs(string) :
-    mat = numpy.zeros((26, 26))
+    mat = numpy.zeros((1, 26 * 26))
     for i in range(0,(len(string)-1)):
 
-        asciiFirstPartOfPair = ord(string[i])
-        asciiSecondPartOfPair = ord(string[i+1])
-        if((asciiFirstPartOfPair > 96) and (asciiFirstPartOfPair < 123) and (asciiSecondPartOfPair > 96) and (asciiSecondPartOfPair < 123)):
+        firstLetter = ord(string[i])
+        secondLetter = ord(string[i+1])
 
-            row = (asciiFirstPartOfPair-97)
+        if((firstLetter > 96) and (firstLetter < 123) and (secondLetter > 96) and (secondLetter < 123)):
 
-            column = (asciiSecondPartOfPair - 97)
+            row = (firstLetter-97)
 
-            mat[column][row] += 1
+            column = (secondLetter - 97)
 
-    print(mat)
+            mat[0][column * row] += 1
+    return mat

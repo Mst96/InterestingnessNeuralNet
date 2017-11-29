@@ -1,7 +1,7 @@
 import pandas as pd
 import numpy as np
 
-PATH = '/Users/zach/documents/uni/t1/scc403/'
+PATH = '/Users/mustafa/documents/Year 4/403/'
 
 trump_tweets_df = pd.read_csv(PATH + 'clean_trump.csv')
 
