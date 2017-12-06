@@ -16,6 +16,7 @@ import h5py
 
 from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
+from keras.losses import mean_squared_error
 from keras.models import Sequential
 from keras.layers import Dense, Dropout, Activation
 from keras.layers import Embedding, Flatten, MaxPooling1D
@@ -24,21 +25,21 @@ from keras.layers import Conv1D, GlobalMaxPooling1D
 
 
 #gets rid of links and other things to clean the tweet up so it's just text.
-def load_train_data():
+def load_train_data(num_tweets):
 	with open("TESTING AND TRAINING DATA/training_trump4.csv", 'r') as f:
 		tweets = list(csv.reader(f, delimiter=","))
 	# print(tweets)
-	train_array = np.asarray(tweets)[1:]
+	train_array = np.asarray(tweets)[1:num_tweets]
 	train_array = train_array[:, [2,9]]
 	# return array[:, [2,9]]
 	
 	return train_array
 
-def load_test_data():
+def load_test_data(num_tweets):
 	with open("TESTING AND TRAINING DATA/testing_trump2.csv", 'r') as f:
 		tweets = list(csv.reader(f, delimiter=","))
 	
-	test_array = np.asarray(tweets)[1:]
+	test_array = np.asarray(tweets)[1:num_tweets]
 	test_array = test_array[:, [2,9]]
 
 	return test_array
@@ -46,6 +47,7 @@ def load_test_data():
 def pad(tweets, vocab_size):
 	# integer encode the documents
 	encoded = [one_hot(word, vocab_size) for word in tweets]
+	print(encoded)
 	max_length = 50
 	padded_docs = pad_sequences(encoded, maxlen=max_length, padding='post')
 	return padded_docs
@@ -53,8 +55,8 @@ def pad(tweets, vocab_size):
 save_dir = os.path.join(os.getcwd(), 'saved_models')
 model_name = 'keras_403_trained_model.h5'
 # set parameters:
-max_features = 1001
-maxlen = 50
+max_features = 501
+maxlen = 676
 vocab_size = 50
 #32 samples in a batch, all processed independently
 batch_size = 100
@@ -79,23 +81,30 @@ epochs = 2
 # x = Input(shape=(26, 26, 4), name='hashtags+media+@')
 
 print('Loading data...')
-train = load_train_data()
+train = load_train_data(max_features)
 x_train = train[:,0]
 y_train = train[:,1]
-test = load_test_data()
+test = load_test_data(max_features)
 x_test = test[:,0]
 y_test = test[:,1]
 
-# for i, x in enumerate(x_train):
-# 	x_train[i] = np.vectorize(txt2mat.textToMatPairs(x))
+train_array = []
+test_array = []
+print(x_train.shape)
+for x in x_train:
+	train_array.append(txt2mat.textToMatPairs(x))
 
 
-# for i, x in enumerate(x_test):
-# 	x_test[i] = np.vectorize(txt2mat.textToMatPairs(x))
+for x in x_test:
+	test_array.append(txt2mat.textToMatPairs(x))
 
-x_train = pad(x_train, vocab_size)
-x_test = pad(x_test, vocab_size)
-
+x_train = np.asarray(train_array)
+# x_train = np.transpose(train_array)
+x_test = np.asarray(test_array)
+# x_test = np.transpose(test_array)
+# x_train = pad(x_train, vocab_size)
+# x_test = pad(x_test, vocab_size)
+print(x_train.shape)
 #build model
 print('Build model...')
 model = Sequential()
@@ -126,7 +135,7 @@ model.add(Flatten())
 # model.add(Activation('relu'))
 # model.add(Dropout(0.5))
 model.add(Dense(1))
-model.add(Activation('sigmoid'))
+model.add(Activation('relu'))
 # print(model.output_shape)
 # model.add(Dense(1, activation='sigmoid'))
 
@@ -151,7 +160,9 @@ model.add(Activation('sigmoid'))
 
 #train model
 model.compile(loss='mean_squared_error',
-              optimizer='adam')
+              optimizer='adam', metrics=['mean_squared_error'])
+
+print(model.summary())
 
 model.fit(x_train, y_train,
           batch_size=batch_size,
@@ -159,11 +170,21 @@ model.fit(x_train, y_train,
           validation_data=(x_test, y_test))
 #Print results
 score = model.evaluate(x_test, y_test, batch_size=batch_size)
-print(score)
-
-prediction = model.predict(x_test, batch_size=batch_size)
+# x = x_test[50:90]
+# print(x.shape)
+# print(x_train.shape)
+prediction = model.predict(x_test)
 print(y_test)
 print(prediction)
+# for i, y in enumerate(prediction):
+# 	print(i)
+# 	print(prediction[i][0])
+# 	print(y_train[50+i])
+	# sub = prediction[i][0] - y_train[50+i]
+	# print(np.mean(np.square(sub)))
+# # error = mean_squared_error(y_test, prediction)
+# print(y_test)
+# print(prediction)
 
 #Save model
 #save structure of model as json

@@ -2,7 +2,7 @@ import numpy
 import sys
 
 def textToMatPairs(string) :
-    mat = numpy.zeros((1, 26 * 26))
+    mat = [0] * (26*26)
     for i in range(0,(len(string)-1)):
 
         firstLetter = ord(string[i])
@@ -14,5 +14,5 @@ def textToMatPairs(string) :
 
             column = (secondLetter - 97)
 
-            mat[0][column * row] += 1
+            mat[column * row] += 1
     return mat
