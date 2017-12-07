@@ -2,7 +2,7 @@ import keras
 import csv
 import os
 import numpy as np
-import textToMatPairs as txt2mat
+# import textToMatPairs as txt2mat
 import h5py
 #Linear model
 # from keras.models import Sequential
@@ -18,37 +18,35 @@ from keras.preprocessing.text import one_hot
 from keras.preprocessing.sequence import pad_sequences
 from keras.losses import mean_squared_error
 from keras.models import Model
-from keras.layers import Dense, Dropout, Activation, concatenate
+from keras.layers import Dense, Dropout, Activation, concatenate, Reshape
 from keras.layers import Embedding, Flatten, MaxPooling1D, LSTM
-from keras.layers import Input,Conv1D, GlobalMaxPooling1D
+from keras.layers import Input,Conv1D, GlobalMaxPooling1D, BatchNormalization
 
 
 
 #gets rid of links and other things to clean the tweet up so it's just text.
-def load_train_data(num_tweets):
-	with open("TESTING AND TRAINING DATA/training_trump1.csv", 'r') as f:
+def load_train_data():
+	with open("TESTING AND TRAINING DATA/training.csv", 'r') as f:
 		tweets = list(csv.reader(f, delimiter=","))
 	# print(tweets)
-	train_array = np.asarray(tweets)[1:num_tweets]
-	train_array = train_array[:, [2,8,9,10, 11, 12, 13]]
+	train_array = np.asarray(tweets)[1:]
+	train_array = train_array[:, [0, 5, 6, 7, 8, 9, 10 ]]
 	# return array[:, [2,9]]
 	
 	return train_array
 
-def load_test_data(num_tweets):
-	with open("TESTING AND TRAINING DATA/testing_trump1.csv", 'r') as f:
+def load_test_data():
+	with open("TESTING AND TRAINING DATA/testing.csv", 'r') as f:
 		tweets = list(csv.reader(f, delimiter=","))
 	
-	test_array = np.asarray(tweets)[1:num_tweets]
-	test_array = test_array[:, [2, 8, 9, 10, 11, 12, 13]]
-
+	test_array = np.asarray(tweets)[1:]
+	test_array = test_array[:, [0, 5, 6, 7, 8, 9, 10 ]]
 	return test_array
 
 def pad(tweets, vocab_size):
 	# integer encode the documents
 	encoded = [one_hot(word, vocab_size) for word in tweets]
-	print(encoded)
-	max_length = 50
+	max_length = 100
 	padded_docs = pad_sequences(encoded, maxlen=max_length, padding='post')
 	return padded_docs
 
@@ -57,7 +55,7 @@ model_name = 'keras_403_trained_model.h5'
 # set parameters:
 max_features = 501
 maxlen = 676
-vocab_size = 50
+vocab_size = 100
 #32 samples in a batch, all processed independently
 batch_size = 100
 embedding_dims = 100
@@ -65,7 +63,7 @@ filters = 100
 kernel_size = 3
 hidden_dims = 250
 #Arbitrary cutoff point. 1 = 1 PASS OVER DATASET.
-epochs = 2
+epochs = 100
 
 
 #initialise input dimensions
@@ -81,7 +79,7 @@ epochs = 2
 # x = Input(shape=(26, 26, 4), name='hashtags+media+@')
 
 print('Loading data...')
-train = load_train_data(max_features)
+train = load_train_data()
 
 #main input
 tweets_train = train[:,0]
@@ -91,19 +89,24 @@ retweets_train = train[:,1]
 likes_train = train[:,2]
 score_train = train[:,3]
 
-print(retweets_train)
+# print(retweets_train)
 #other inputs
 links_train = train[:,4]
+# links_train = links_train.astype(np.int32)
 mentions_train = train[:,5]
 hashtags_train = train[:,6]
+# mentions_train = mentions_train.astype(np.int32)
+# hashtags_train = hashtags_train.astype(np.int32)
 
-test = load_test_data(max_features)
+test = load_test_data()
 #main input
 tweets_test = test[:,0]
 
 #outputs
 retweets_test = test[:,1]
+print(retweets_test)
 likes_test = test[:,2]
+print(likes_test)
 score_test = test[:,3]
 
 #other inputs
@@ -111,22 +114,26 @@ links_test = test[:,4]
 mentions_test = test[:,5]
 hashtags_test = test[:,6]
 
-train_array = []
-test_array = []
-for x in tweets_train:
-	train_array.append(txt2mat.textToMatPairs(x))
+
+# links_train = links_train.astype(np.int32)
+# mentions_train = mentions_train.astype(np.int32)
+# hashtags_train = hashtags_train.astype(np.int32)
+
+# train_array = []
+# test_array = []
+# for x in tweets_train:
+# 	train_array.append(txt2mat.textToMatPairs(x))
 
 
-for x in tweets_test:
-	test_array.append(txt2mat.textToMatPairs(x))
+# for x in tweets_test:
+# 	test_array.append(txt2mat.textToMatPairs(x))
 
-tweets_train = np.asarray(train_array)
+# tweets_train = np.asarray(train_array)
 # x_train = np.transpose(train_array)
-tweets_test = np.asarray(test_array)
+# tweets_test = np.asarray(test_array)
 # x_test = np.transpose(test_array)
-# x_train = pad(x_train, vocab_size)
-# x_test = pad(x_test, vocab_size)
-print(tweets_train.shape)
+tweets_train = pad(tweets_train, vocab_size)
+tweets_test = pad(tweets_test, vocab_size)
 #build model
 print('Build model...')
 # model = Sequential()
@@ -134,25 +141,35 @@ print('Build model...')
 
 # we start off with an efficient embedding layer which maps
 # our vocab indices into embedding_dims dimensions
-main_input = Input(shape=(676,), dtype='int32', name='main_input')
-embedded = Embedding(vocab_size,
-                    embedding_dims,
-                    input_length=maxlen)(main_input)
+main_input = Input(shape=(100,), name='main_input')
+# embedded = Embedding(vocab_size,
+#                     embedding_dims,
+#                     input_length=maxlen)(main_input)
+
+# flatten_out = Flatten()(embedded)
+# x = concatenate([flatten_out, mentions_dense, hashtags_dense, links_dense])
+# x = Reshape(500)(x)
+# print(x)
+x = Dense(80, activation='relu')(main_input)
+x = Dense(50, activation='relu')(x)
+x = Dense(10, activation='relu')(x)
+x = Dense(5, activation='relu')(x)
 
 mentions = Input(shape=(1,), name='mentions_input')
+mentions_dense = Dense(1, )(mentions)
 hashtags = Input(shape=(1,), name='hashtags_input')
+hashtags_dense = Dense(1, )(hashtags)
 links = Input(shape=(1,), name='links_input')
+links_dense = Dense(1, )(links)
 
-lstm_out = LSTM(32)(embedded)
-x = concatenate([lstm_out, mentions, hashtags, links])
-x = Dense(64, activation='relu')(x)
-x = Dense(64, activation='relu')(x)
-x = Dense(64, activation='relu')(x)
-# model.add(Dropout(0.2))
+x = concatenate([x, mentions_dense, hashtags_dense, links_dense])
+# x = Dropout(0.2)(x)
 # model.add(Flatten())
 # model.add(Dense(32))
-# model.add(Conv1D(32, (3,), padding='same'))
-# model.add(Activation('relu'))
+# x = Conv1D(64, (2,), activation='relu')(x)
+# x = MaxPooling1D(pool_size=(2,))(x)
+# x = Dropout(0.2)(x)
+# x = Flatten()(x)
 # model.add(Conv1D(32, (3,)))
 # model.add(Activation('relu'))
 # model.add(MaxPooling1D(pool_size=(2,)))
@@ -173,30 +190,12 @@ likes = Dense(1, activation='sigmoid', name='likes_output')(x)
 # print(model.output_shape)
 # model.add(Dense(1, activation='sigmoid'))
 model = Model(inputs=[main_input, mentions, hashtags, links], outputs=[score, retweets, likes])
-# # we use max pooling:
-# # model.add(GlobalMaxPooling1D())
 
-
-# # We add a vanilla hidden layer:
-# model.add(Dense(hidden_dims))
-# model.add(Dropout(0.2))
-# model.add(Activation('relu'))
-
-
-# # We project onto a single unit output layer, and squash it with a sigmoid:
-# model.add(Dense(1))
-# model.add(Activation('sigmoid'))
-
-# x = keras.layers.concatenate([x, auxiliary_input])
-
-
-# model = Model(inputs=[main_input, auxiliary_input], outputs=[main_output, retweets, likes])
 
 #train model
 model.compile(loss='mean_squared_error',
-              optimizer='rmsprop', metrics=['mean_squared_error'])
+              optimizer='adam')
 
-print(model.summary())
 
 x_train = [tweets_train, mentions_train, hashtags_train, links_train] 
 y_train = [score_train, retweets_train, likes_train]
@@ -213,11 +212,16 @@ score = model.evaluate(x_test, y_test, batch_size=batch_size)
 # x = x_test[50:90]
 # print(x.shape)
 # print(x_train.shape)
-prediction = model.predict(x_test)
-# print(y_test)
-# print(prediction)
-for i, y in enumerate(prediction):
-	print(prediction[0])
+prediction = model.predict(x_train, batch_size)
+print(type(prediction))
+print(y_test)
+print(prediction)
+
+pred = np.swapaxes(prediction,0,1)
+np.savetxt('output.csv', pred, delimiter=",")
+
+# for i, y in enumerate(prediction):
+# 	print(prediction[0])
 	# print(y_train[i])
 	# sub = prediction[0][i] - y_train[i]
 	# print(np.mean(np.square(sub)))

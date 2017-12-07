@@ -33,6 +33,14 @@ def if_mention(tweet):
             return True
     return False
 
+#checks if there is an @ in the tweet
+def if_hashtag(tweet):
+    parts = tweet.split()
+    for part in parts:
+        if '#' in part:
+            return True
+    return False
+
 #change - to / in times for consistency
 def clean_times(time):
     new_time = list(time)
@@ -48,6 +56,7 @@ trump_tweets_df = trump_tweets_df.drop(['is_retweet','source'], axis=1)
 #clean up tweets and find out if there are mentions or media
 trump_tweets_df['media'] = trump_tweets_df['text'].map(if_media)
 trump_tweets_df['mention'] = trump_tweets_df['text'].map(if_mention)
+trump_tweets_df['hashtag'] = trump_tweets_df['text'].map(if_hashtag)
 trump_tweets_df['text'] = trump_tweets_df['text'].map(clean_tweet)
 
 trump_tweets_df['created_at'] = trump_tweets_df['created_at'].map(clean_times)
