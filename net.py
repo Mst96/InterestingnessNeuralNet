@@ -209,13 +209,14 @@ model.fit(x_train, y_train,
           validation_data=(x_test, y_test))
 #Print results
 score = model.evaluate(x_test, y_test, batch_size=batch_size)
+print("SCORE:",score)
 # x = x_test[50:90]
 # print(x.shape)
 # print(x_train.shape)
 prediction = model.predict(x_train, batch_size)
-print(type(prediction))
-print(y_test)
-print(prediction)
+# print(type(prediction))
+# print(y_test)
+# print(prediction)
 
 pred = np.swapaxes(prediction,0,1)
 np.savetxt('output.csv', pred, delimiter=",")
