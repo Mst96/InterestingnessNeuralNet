@@ -17,9 +17,7 @@ def textToMatPairs(string) :
 
         mat[column][row] += 1
         if mat[column][row] > highest:
-        	print("here")
         	highest = mat[column][row]
-        	print(highest)
   # mean = numpy.mean(mat)
   # sd = numpy.std(mat)
   mat = normalise(mat, highest)

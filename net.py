@@ -2,7 +2,7 @@ import keras
 import csv
 import os
 import numpy as np
-# import textToMatPairs as txt2mat
+import textToMatPairs as txt2mat
 import h5py
 #Linear model
 # from keras.models import Sequential
@@ -41,12 +41,13 @@ def load_test_data():
 	
 	test_array = np.asarray(tweets)[1:]
 	test_array = test_array[:, [0, 5, 6, 7, 8, 9, 10 ]]
+	print(test_array)
 	return test_array
 
 def pad(tweets, vocab_size):
 	# integer encode the documents
 	encoded = [one_hot(word, vocab_size) for word in tweets]
-	max_length = 100
+	max_length = 50
 	padded_docs = pad_sequences(encoded, maxlen=max_length, padding='post')
 	return padded_docs
 
@@ -104,9 +105,7 @@ tweets_test = test[:,0]
 
 #outputs
 retweets_test = test[:,1]
-print(retweets_test)
 likes_test = test[:,2]
-print(likes_test)
 score_test = test[:,3]
 
 #other inputs
@@ -129,10 +128,11 @@ hashtags_test = test[:,6]
 # 	test_array.append(txt2mat.textToMatPairs(x))
 
 # tweets_train = np.asarray(train_array)
-# x_train = np.transpose(train_array)
+# # x_train = np.transpose(train_array)
 # tweets_test = np.asarray(test_array)
 # x_test = np.transpose(test_array)
 tweets_train = pad(tweets_train, vocab_size)
+# print(tweets_train)
 tweets_test = pad(tweets_test, vocab_size)
 #build model
 print('Build model...')
@@ -141,7 +141,7 @@ print('Build model...')
 
 # we start off with an efficient embedding layer which maps
 # our vocab indices into embedding_dims dimensions
-main_input = Input(shape=(100,), name='main_input')
+main_input = Input(shape=(50,), name='main_input')
 # embedded = Embedding(vocab_size,
 #                     embedding_dims,
 #                     input_length=maxlen)(main_input)
@@ -213,13 +213,15 @@ print("SCORE:",score)
 # x = x_test[50:90]
 # print(x.shape)
 # print(x_train.shape)
-prediction = model.predict(x_train, batch_size)
+prediction = model.predict(x_test)
 # print(type(prediction))
-# print(y_test)
-# print(prediction)
+print(y_test)
+print(prediction)
 
 pred = np.swapaxes(prediction,0,1)
-np.savetxt('output.csv', pred, delimiter=",")
+y = np.swapaxes(y_test,0,1)
+output = pred
+np.savetxt('output.csv', output, delimiter=",")
 
 # for i, y in enumerate(prediction):
 # 	print(prediction[0])
